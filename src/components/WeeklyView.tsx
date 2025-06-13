@@ -1,62 +1,67 @@
-
 import React, { useState, useEffect } from "react";
 import { DAYS_OF_WEEK, TIME_SLOTS, TIME_SLOT_MAP, getTimeSlotLetter, getPeriodLabel, groupTimeSlotsByPeriod } from "@/utils/date-utils";
 import { useScheduler } from "@/contexts/SchedulerContext";
 import ReservationCard from "./ReservationCard";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
-import ReservationModal from "./ReservationModal";
-import { Reservation, TimeSlot, DayOfWeek } from "@/types/scheduler";
+import EditReservationModal from "./EditReservationModal";
+import { Reservation, TimeSlot, DayOfWeek, Month } from "@/types/scheduler";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { dayTranslations } from "@/utils/translations";
 
-// Tradução dos meses
 const MESES_TRADUZIDOS: Record<string, string> = {
-  "January": "Janeiro",
-  "February": "Fevereiro",
-  "March": "Março",
-  "April": "Abril",
-  "May": "Maio",
-  "June": "Junho",
-  "July": "Julho",
-  "August": "Agosto",
-  "September": "Setembro",
-  "October": "Outubro",
-  "November": "Novembro",
-  "December": "Dezembro"
+  "January": "Janeiro", "February": "Fevereiro", "March": "Março", "April": "Abril",
+  "May": "Maio", "June": "Junho", "July": "Julho", "August": "Agosto",
+  "September": "Setembro", "October": "Outubro", "November": "Novembro", "December": "Dezembro"
+};
+
+const getStartOfWeek = (date: Date): Date => {
+  const dt = new Date(date);
+  const day = dt.getDay();
+  const diff = dt.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(dt.setDate(diff));
 };
 
 const WeeklyView: React.FC = () => {
-  const { filteredReservations, deleteReservation, selectedMonth, selectedDay, setSelectedDay } = useScheduler();
+  const { 
+    filteredReservations, 
+    deleteReservation, 
+    selectedMonth, 
+    selectedYear,
+    selectedDay, 
+    setSelectedDay 
+  } = useScheduler();
+
   const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>(undefined);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentWeek, setCurrentWeek] = useState(1); // Track current week
-  const [weekOffset, setWeekOffset] = useState(0); // Para controlar o deslocamento das semanas
   const [visibleReservations, setVisibleReservations] = useState<Reservation[]>([]);
+  const [weekStartDate, setWeekStartDate] = useState(() => getStartOfWeek(new Date()));
   const groupedTimeSlots = groupTimeSlotsByPeriod();
   
-  // Atualizar as reservas visíveis com base no deslocamento da semana
+  const MONTHS: Month[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
   useEffect(() => {
-    // Simulando o filtro por semana (em um caso real, isso seria baseado em datas reais)
-    // Aqui estamos filtrando as reservas com base no offset da semana
-    // Se weekOffset é 0, mostra as reservas da semana atual
-    // Se weekOffset é 1, mostra as reservas da próxima semana, etc.
-    
-    // Aplicamos um filtro com base no offset da semana
-    // Para simulação, vamos usar o ID da reserva para determinar a que semana pertence
+    const startOfWeek = getStartOfWeek(weekStartDate);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+
     const weekBasedReservations = filteredReservations.filter(reservation => {
-      // Simulação: usar o ID numérico para distribuir entre semanas
-      // Na prática, isso seria feito com datas reais
-      const reservationId = parseInt(reservation.id);
-      const reservationWeek = Math.floor(reservationId / 3) % 4 + 1; // Distribui em 4 semanas
-      
-      return reservationWeek === currentWeek;
+      const reservationDate = new Date(reservation.dateTime);
+      return reservationDate >= startOfWeek && reservationDate < endOfWeek;
     });
     
     setVisibleReservations(weekBasedReservations);
-  }, [filteredReservations, weekOffset, currentWeek]);
+  }, [filteredReservations, weekStartDate]);
+
+  useEffect(() => {
+    const monthIndex = MONTHS.indexOf(selectedMonth);
+    const firstDayOfMonth = new Date(selectedYear, monthIndex, 1);
+    setWeekStartDate(getStartOfWeek(firstDayOfMonth));
+  }, [selectedMonth, selectedYear]);
   
   const handleEditReservation = (reservation: Reservation) => {
     setSelectedReservation(reservation);
@@ -74,50 +79,58 @@ const WeeklyView: React.FC = () => {
     }
   };
 
-  const getReservationsByDayAndTime = (day: string, timeSlot: TimeSlot) => {
-    // Usar as reservas filtradas por semana
+  const getReservationsByDayAndTime = (day: DayOfWeek, timeSlot: TimeSlot) => {
     return visibleReservations.filter(
       (reservation) => reservation.day === day && reservation.timeSlot === timeSlot
     );
   };
 
-  // Manipuladores de semana anterior e próxima
   const handlePreviousWeek = () => {
-    setCurrentWeek(prev => Math.max(prev - 1, 1));
-    setWeekOffset(prev => prev - 1);
+    setWeekStartDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setDate(newDate.getDate() - 7);
+      return newDate;
+    });
   };
   
   const handleNextWeek = () => {
-    setCurrentWeek(prev => prev + 1);
-    setWeekOffset(prev => prev + 1);
+    setWeekStartDate(prevDate => {
+      const newDate = new Date(prevDate);
+      newDate.setDate(newDate.getDate() + 7);
+      return newDate;
+    });
   };
 
-  // Traduzir o mês
-  const traduzirMes = (mes: string) => {
-    return MESES_TRADUZIDOS[mes] || mes;
+  const formatWeekRange = (start: Date): string => {
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const startDay = start.getDate();
+    const startMonth = MESES_TRADUZIDOS[MONTHS[start.getMonth()]];
+    const endDay = end.getDate();
+    const endMonth = MESES_TRADUZIDOS[MONTHS[end.getMonth()]];
+    
+    if (startMonth === endMonth) {
+        return `Semana de ${startDay} a ${endDay} de ${startMonth}`;
+    }
+    return `Semana de ${startDay} de ${startMonth} a ${endDay} de ${endMonth}`;
   };
 
-  // Função para selecionar um dia da semana
   const handleDayClick = (day: DayOfWeek) => {
     setSelectedDay(day === selectedDay ? undefined : day);
   };
 
-  // Limpar o dia selecionado quando o componente é desmontado
   useEffect(() => {
     return () => {
       setSelectedDay(undefined);
     };
-  }, []);
+  }, [setSelectedDay]);
 
-  // Renderiza uma seção de período (Manhã, Tarde, Noite)
   const renderPeriodSection = (periodName: string, timeSlots: TimeSlot[]) => (
     <React.Fragment key={periodName}>
-      {/* Cabeçalho do período */}
       <div className="period-header col-span-8 bg-scheduler-blue-dark text-white text-center py-2 font-bold">
         {periodName}
       </div>
       
-      {/* Slots de tempo para este período */}
       {timeSlots.map((timeSlot) => (
         <React.Fragment key={timeSlot}>
           <div className="time-slot-header sticky left-0 z-10 rounded-l-lg">
@@ -152,11 +165,10 @@ const WeeklyView: React.FC = () => {
 
   return (
     <div className="flex flex-col space-y-4">
-      {/* Cabeçalho do seletor de semana */}
       <div className="flex items-center justify-between mb-2 p-3 glass-card rounded-lg">
         <div className="flex items-center">
           <Calendar className="h-5 w-5 text-scheduler-blue-medium mr-2" />
-          <h2 className="text-lg font-semibold text-scheduler-blue-dark">{traduzirMes(selectedMonth)} - Semana {currentWeek}</h2>
+          <h2 className="text-lg font-semibold text-scheduler-blue-dark">{formatWeekRange(weekStartDate)}</h2>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -178,9 +190,8 @@ const WeeklyView: React.FC = () => {
         </div>
       </div>
 
-      {/* Cabeçalho dos dias */}
       <div className="grid grid-cols-8 gap-0">
-        <div className="p-2 bg-white border border-scheduler-gray-medium/30 rounded-tl-lg"></div> {/* Célula vazia para coluna de tempo */}
+        <div className="p-2 bg-white border border-scheduler-gray-medium/30 rounded-tl-lg"></div>
         {DAYS_OF_WEEK.map((day, index) => (
           <div 
             key={day} 
@@ -200,9 +211,7 @@ const WeeklyView: React.FC = () => {
         ))}
       </div>
 
-      {/* Grade do calendário com seções de período */}
       <div className="grid grid-cols-8 gap-0 border-collapse rounded-b-lg overflow-hidden">
-        {/* Renderizar cada seção de período */}
         {renderPeriodSection('Manhã', groupedTimeSlots['Manhã'])}
         {renderPeriodSection('Tarde', groupedTimeSlots['Tarde'])}
         {renderPeriodSection('Noite', groupedTimeSlots['Noite'])}
@@ -215,12 +224,13 @@ const WeeklyView: React.FC = () => {
         reservation={selectedReservation}
       />
 
-      <ReservationModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        reservation={selectedReservation}
-        isEdit={true}
-      />
+      {selectedReservation && (
+          <EditReservationModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            reservation={selectedReservation}
+          />
+      )}
     </div>
   );
 };
