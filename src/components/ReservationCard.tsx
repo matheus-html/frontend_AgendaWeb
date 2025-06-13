@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Reservation } from "@/types/scheduler";
 import { Button } from "./ui/button";
@@ -13,13 +12,11 @@ interface ReservationCardProps {
 }
 
 const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onEdit, onDelete }) => {
-  // Determinar cor de fundo com base no tipo de reserva
-  const cardClass = reservation.reservationType === "fixed" 
+  const cardClass = reservation.isFixed 
     ? "reservation-fixed" 
     : "reservation-mobile";
 
-  // Traduzir tipo de reserva
-  const traduzirTipoReserva = (tipo: string) => tipo === "fixed" ? "Fixo" : "Móvel";
+  const traduzirTipoReserva = (isFixed: boolean) => isFixed ? "Fixo" : "Móvel";
 
   return (
     <HoverCard>
@@ -27,13 +24,13 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onEdit, 
         <div className={`p-2 my-1 shadow-sm hover-effect relative ${cardClass}`}>
           <div className="flex justify-between items-start">
             <div className="font-medium text-xs truncate">
-              {reservation.comments.eventDescription}
+              {reservation.description}
             </div>
           </div>
           
           <div className="mt-1 flex items-center justify-between">
             <div className="text-[10px] opacity-80">
-              por {reservation.comments.bookedBy}
+              por {reservation.responsible}
             </div>
             
             <div className="flex gap-1">
@@ -42,7 +39,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onEdit, 
                 size="icon" 
                 className="h-5 w-5 opacity-70 hover:opacity-100" 
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent event bubbling
+                  e.stopPropagation();
                   onEdit();
                 }}
               >
@@ -53,7 +50,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onEdit, 
                 size="icon" 
                 className="h-5 w-5 opacity-70 hover:opacity-100" 
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent event bubbling
+                  e.stopPropagation();
                   onDelete();
                 }}
               >
@@ -69,14 +66,11 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onEdit, 
         align="start"
         sideOffset={5}
       >
-        <h4 className="font-bold text-sm mb-1">{reservation.comments.eventDescription}</h4>
-        <p className="mb-1 text-sm"><span className="font-medium">Por:</span> {reservation.comments.bookedBy}</p>
+        <h4 className="font-bold text-sm mb-1">{reservation.description}</h4>
+        <p className="mb-1 text-sm"><span className="font-medium">Por:</span> {reservation.responsible}</p>
         <p className="mb-1 text-sm"><span className="font-medium">Local:</span> {reservation.facility}</p>
-        <p className="mb-1 text-sm"><span className="font-medium">Tipo:</span> {traduzirTipoReserva(reservation.reservationType)}</p>
+        <p className="mb-1 text-sm"><span className="font-medium">Tipo:</span> {traduzirTipoReserva(reservation.isFixed)}</p>
         <p className="mb-1 text-sm"><span className="font-medium">Horário:</span> {formatTimeSlot(reservation.timeSlot)}</p>
-        {reservation.comments.additionalDetails && (
-          <p className="mb-1 text-sm"><span className="font-medium">Detalhes:</span> {reservation.comments.additionalDetails}</p>
-        )}
       </HoverCardContent>
     </HoverCard>
   );

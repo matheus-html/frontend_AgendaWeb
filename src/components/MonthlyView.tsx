@@ -1,11 +1,6 @@
-
 import React, { useState } from "react";
 import { useScheduler } from "@/contexts/SchedulerContext";
-import {
-  DAYS_OF_WEEK,
-  getFirstDayOfMonth,
-  getMonthDays
-} from "@/utils/date-utils";
+import { DAYS_OF_WEEK, getFirstDayOfMonth, getMonthDays } from "@/utils/date-utils";
 import ReservationCard from "./ReservationCard";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import ReservationModal from "./ReservationModal";
@@ -38,28 +33,23 @@ const MonthlyView: React.FC = () => {
   };
 
   const getReservationsForDayNumber = (day: number) => {
-    const dayOfWeekIndex = (firstDay + day - 1) % 7;
-    const dayName = DAYS_OF_WEEK[dayOfWeekIndex];
-    
-    return filteredReservations.filter(
-      (reservation) => reservation.day === dayName
-    );
+    return filteredReservations.filter((reservation) => {
+      const reservationDate = new Date(reservation.dateTime);
+      return reservationDate.getDate() === day;
+    });
   };
 
-  // Gerar grade do calendário
   const calendarDays = [];
-  // Adicionar células vazias para os dias antes do primeiro dia do mês
   for (let i = 0; i < firstDay; i++) {
     calendarDays.push(<div key={`empty-${i}`} className="border border-scheduler-gray-medium/30 p-1 bg-gray-50/50 rounded-sm" />);
   }
 
-  // Adicionar dias do mês
   for (let day = 1; day <= daysInMonth; day++) {
     const dayReservations = getReservationsForDayNumber(day);
     calendarDays.push(
-      <div key={day} className="border border-scheduler-gray-medium/30 min-h-[100px] p-1 hover:bg-gray-50/70 transition rounded-sm">
+      <div key={day} className="border border-scheduler-gray-medium/30 min-h-[120px] p-1 hover:bg-gray-50/70 transition rounded-sm">
         <div className="text-right text-xs font-medium mb-1 text-scheduler-blue-dark">{day}</div>
-        <div className="space-y-1 overflow-y-auto max-h-[90px]">
+        <div className="space-y-1 overflow-y-auto max-h-[105px]">
           {dayReservations.map((reservation) => (
             <ReservationCard
               key={reservation.id}
