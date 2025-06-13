@@ -6,6 +6,7 @@ import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import ReservationModal from "./ReservationModal";
 import { Reservation } from "@/types/scheduler";
 import { dayTranslations } from "@/utils/translations";
+import EditReservationModal from "./EditReservationModal"; 
 
 const MonthlyView: React.FC = () => {
   const { filteredReservations, selectedMonth, selectedYear, deleteReservation } = useScheduler();
@@ -84,12 +85,13 @@ const MonthlyView: React.FC = () => {
         reservation={selectedReservation}
       />
 
-      <ReservationModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        reservation={selectedReservation}
-        isEdit={true}
+    {selectedReservation && (
+        <EditReservationModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          reservation={selectedReservation}
       />
+       )}
     </div>
   );
 };
