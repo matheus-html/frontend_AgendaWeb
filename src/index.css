@@ -1,0 +1,161 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221 83% 33%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 221 83% 53%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 222 100% 38%; /* Ajustado para o azul da Unifor */
+    --sidebar-foreground: 0 0% 100%;
+
+    --sidebar-primary: 222 100% 45%; /* Ajustado para o azul da Unifor */
+    --sidebar-primary-foreground: 0 0% 100%;
+
+    --sidebar-accent: 222 100% 30%; /* Ajustado para o azul da Unifor */
+    --sidebar-accent-foreground: 0 0% 100%;
+
+    --sidebar-border: 221 83% 28%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* ... keep existing code (dark theme variables) */
+  }
+  
+  @font-face {
+    font-family: 'TW Cen MT';
+    src: local('TW Cen MT');
+    font-weight: normal;
+    font-style: normal;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-twcent;
+  }
+}
+
+/* Fluent UI inspired styling */
+.reservation-fixed {
+  @apply bg-scheduler-fixed/90 text-white font-medium rounded-lg shadow-sm backdrop-blur-sm border-none;
+}
+
+.reservation-mobile {
+  @apply bg-scheduler-mobile/90 text-scheduler-blue-dark font-medium rounded-lg shadow-sm backdrop-blur-sm border-none;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+}
+
+.time-slot {
+  @apply p-1 text-xs min-h-[60px] overflow-hidden transition-all;
+}
+
+/* Fixed the hover issue by completely removing any background change on hover */
+.time-slot:hover {
+  @apply bg-transparent;
+  pointer-events: auto;
+}
+
+.time-slot-header {
+  @apply p-2 text-sm font-medium flex flex-col justify-center items-center min-h-[60px] bg-scheduler-gray-light/50;
+}
+
+.period-header {
+  @apply text-sm py-1.5 rounded-t-md;
+}
+
+/* Improved reservation tooltip styling */
+.reservation-tooltip {
+  @apply invisible absolute z-50 w-64 p-3 shadow-lg transition-opacity duration-150;
+  @apply bg-white/95 backdrop-blur-sm rounded-lg border border-scheduler-blue-light;
+  transform: translateX(10px) translateY(-50%);
+  right: calc(100% + 10px);
+  top: 50%;
+  box-shadow: 0 4px 15px rgba(0, 65, 194, 0.15);
+}
+
+/* Styling for tooltip content */
+.reservation-tooltip h4 {
+  @apply text-scheduler-blue-dark;
+}
+
+.reservation-tooltip p {
+  @apply text-gray-600;
+}
+
+.reservation-tooltip .font-medium {
+  @apply text-scheduler-blue-medium;
+}
+
+/* Improved hover behavior for reservation cards */
+.hover-effect {
+  @apply transition-all duration-150 hover:shadow-md hover:scale-[1.01] relative;
+}
+
+/* Make tooltip visible only when hovering the parent element */
+.hover-effect:hover .reservation-tooltip {
+  @apply visible opacity-100;
+}
+
+.day-column {
+  @apply border-r border-scheduler-gray-medium/50;
+}
+
+.day-column:last-child {
+  @apply border-r-0;
+}
+
+/* Glass effect for cards */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-sm;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
