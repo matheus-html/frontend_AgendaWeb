@@ -50,7 +50,8 @@ interface SchedulerContextType {
   setSelectedFacility: (facility: FacilityType | "all") => void;
   selectedDay: DayOfWeek | undefined;
   setSelectedDay: (day: DayOfWeek | undefined) => void;
-}
+  selectedReservationType: ReservationType | "all";
+  setSelectedReservationType: (type: ReservationType | "all") => void;}
 
 const SchedulerContext = createContext<SchedulerContextType | undefined>(undefined);
 
@@ -65,9 +66,9 @@ export const SchedulerProvider = ({ children }: { children: ReactNode }) => {
   const [selectedMonth, setSelectedMonth] = useState<Month>(getCurrentMonth());
   const [selectedYear] = useState<number>(new Date().getFullYear());
   const [selectedFacility, setSelectedFacility] = useState<FacilityType | "all">("all");
-  const [selectedDay, setSelectedDay] = useState<DayOfWeek | undefined>(undefined);
-  const { token, logout } = useAuth();
-  const { toast } = useToast();
+const [selectedDay, setSelectedDay] = useState<DayOfWeek | undefined>(undefined);
+const [selectedReservationType, setSelectedReservationType] = useState<ReservationType | "all">("all");
+const { token, logout } = useAuth();
 
   const fetchReservations = async () => {
     if (!token) return;
@@ -119,12 +120,15 @@ export const SchedulerProvider = ({ children }: { children: ReactNode }) => {
     fetchReservations();
   }, [token]);
 
-  const filteredReservations = reservations.filter(r => {
-    const monthMatch = r.month === selectedMonth;
-    const facilityMatch = selectedFacility === 'all' || r.facility === selectedFacility;
-    const dayMatch = !selectedDay || r.day === selectedDay;
-    return monthMatch && facilityMatch && dayMatch;
-  });
+const filteredReservations = reservations.filter(r => {
+  const monthMatch = r.month === selectedMonth;
+  const facilityMatch = selectedFacility === 'all' || r.facility === selectedFacility;
+  const dayMatch = !selectedDay || r.day === selectedDay;
+  
+  const typeMatch = selectedReservationType === 'all' || (selectedReservationType === 'fixed' ? r.isFixed : !r.isFixed);
+
+  return monthMatch && facilityMatch && dayMatch && typeMatch;
+});
 
   const value = {
     reservations,
@@ -138,6 +142,8 @@ export const SchedulerProvider = ({ children }: { children: ReactNode }) => {
     setSelectedFacility,
     selectedDay,
     setSelectedDay,
+    selectedReservationType,
+    setSelectedReservationType,
   };
 
   return (
